@@ -5,8 +5,8 @@ const site = 'https://thebloom360initiative.com';
 const siteOrigins = new Set([site, 'https://www.thebloom360initiative.com']);
 const backendPaths = new Set(['/account', '/login', '/signup', '/logout', '/submit']);
 const methods = new Set(['GET', 'HEAD', 'POST']);
-const unavailable = () => new Response('Bloom360 is temporarily unavailable. Please try again.', {
-  status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+const unavailable = (reason = 'runtime') => new Response('Bloom360 is temporarily unavailable. Please try again.', {
+  status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'X-Bloom360-Status': reason },
 });
 
 export default async function frontend(request) {
@@ -53,15 +53,15 @@ export default async function frontend(request) {
       const target = new URL(backend);
       target.pathname = path;
       target.search = url.search;
-      return await fetch(target, { method: request.method, headers, body, redirect: 'manual', cache: 'no-store' });
+      return await fetch(target, { method: request.method, headers, body, redirect: 'manual' });
     }
     if (request.method === 'POST') return new Response('Page could not be found.', { status: 404 });
     const response = await fetch(backend + '/content.json', { cache: 'no-store', redirect: 'error' });
-    if (!response.ok) return unavailable();
+    if (!response.ok) return unavailable('backend-' + response.status);
     const data = await response.json();
     return await renderer.fetch(new Request(url, { method: request.method }), { PUBLIC_DATA: data });
   } catch (error) {
     console.error('Bloom360 frontend request failed', error);
-    return unavailable();
+    return unavailable(error?.name || 'runtime');
   }
 }
