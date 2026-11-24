@@ -19,6 +19,7 @@ export default async function frontend(request) {
   const path = url.pathname.replace(/\/+$/, '') || '/';
   if (!methods.has(request.method)) return new Response(null, { status: 405, headers: { Allow: 'GET, HEAD, POST' } });
 
+  let stage = 'proxy';
   try {
     if (backendPaths.has(path) || path === '/admin' || path.startsWith('/admin/')) {
       const headers = new Headers();
@@ -58,10 +59,12 @@ export default async function frontend(request) {
     if (request.method === 'POST') return new Response('Page could not be found.', { status: 404 });
     const response = await fetch(backend + '/content.json', { cache: 'no-store', redirect: 'error' });
     if (!response.ok) return unavailable('backend-' + response.status);
+    stage = 'content-json';
     const data = await response.json();
-    return await renderer.fetch(new Request(url, { method: request.method }), { PUBLIC_DATA: data });
+    stage = 'render';
+    return await renderer.fetch({ url: url.href, method: request.method, headers: new Headers() }, { PUBLIC_DATA: data });
   } catch (error) {
     console.error('Bloom360 frontend request failed', error);
-    return unavailable(error?.name || 'runtime');
+    return unavailable(stage + '-' + (error?.name || 'runtime'));
   }
 }
