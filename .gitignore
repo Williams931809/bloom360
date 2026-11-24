@@ -1,3 +1,5 @@
 dist/
 .env
 .dev.vars
+
+.vercel/

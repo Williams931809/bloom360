@@ -40,6 +40,10 @@ const start = (path) => `<form class="flow" method="post" action="${e(path)}">`;
 const redirect = (path) => new Response(null, {status: 303, headers: {Location:path, 'Cache-Control':'no-store'}});
 const signIn = (path) => '/signin-with-chatgpt?returnTo=' + encodeURIComponent(path);
 const signOut = '/signout-with-chatgpt?returnTo=%2F';
+const standaloneRequests = new WeakSet();
+const signOutControl = (request) => standaloneRequests.has(request)
+  ? start('/logout') + submit('Sign out') + '</form>'
+  : `<a class="btn ghost" href="${signOut}" target="_top">Sign out</a>`;
 const imageUrl = (value) => {
   try { const url = new URL(value); return url.protocol === 'https:' ? url.href : ''; }
   catch { return ''; }
@@ -63,11 +67,13 @@ function cards(items) {
   return `<div class="grid">${items.map(({ id,kind,title,summary,label,event_date }) => `<article class="card">${label || event_date ? `<span class="status">${e([label,event_date].filter(Boolean).join(' · '))}</span>` : ''}<h2><a href="/${kind}/${e(id)}">${e(title)}</a></h2><p>${e(summary)}</p></article>`).join('')}</div>`;
 }
 async function entries(db) {
+  if (db.entries) return db.entries;
   const result = new Map(defaults.map((entry) => [entry.id, entry]));
   for (const entry of await read(db, 'SELECT * FROM entries ORDER BY title')) result.set(entry.id, entry);
   return [...result.values()];
 }
 async function siteSettings(db) {
+  if (db.settings) return db.settings;
   const result = {...settings};
   for (const {key,value} of await read(db, 'SELECT key, value FROM settings')) {
     if (Object.hasOwn(settings,key)) result[key] = value;
@@ -153,7 +159,7 @@ async function saveEntry(db, form) {
 async function admin(request, url, db) {
   const path = url.pathname;
   const user = actor(request);
-  if (!user.id) return redirect(signIn('/admin'));
+  if (!user.id) return redirect(standaloneRequests.has(request) ? '/login' : signIn('/admin'));
   const account = await first(db,'SELECT role FROM accounts WHERE id = ?',user.id);
   if (!account) return redirect('/account');
   if (account.role !== 'admin') return errorPage('Administrator access is required.','/account',403);
@@ -228,6 +234,7 @@ async function admin(request, url, db) {
 
 async function account(request, db, secret) {
   const user = actor(request);
+  if (!user.id && standaloneRequests.has(request)) return redirect('/login');
   if (!user.id) return page('My account',head('My account','Sign in to register or return to your Bloom360 account.') +
     block(`<a class="btn primary" href="${signIn('/account')}" target="_top">Continue with ChatGPT</a>`),'/account');
   if (request.method === 'POST') return enroll(db,user,await request.formData(),secret);
@@ -235,7 +242,7 @@ async function account(request, db, secret) {
   if (account) {
     return page('My account',head(account.role === 'admin' ? 'Administrator account' : 'My account',user.email) +
       block('<div class="actions">' + (account.role === 'admin' ? button('/admin','Open dashboard',true) : button('/programs','Explore programs',true)) +
-        `<a class="btn ghost" href="${signOut}" target="_top">Sign out</a></div>`),'/account');
+        signOutControl(request) + '</div>'),'/account');
   }
   const adminExists = await first(db,"SELECT id FROM accounts WHERE role = 'admin'");
   const enrollment = !adminExists && !secret
@@ -301,11 +308,33 @@ export default {
     const path = url.pathname;
     const db = env.DB;
     if (!['GET','HEAD','POST'].includes(request.method)) return new Response(null,{status:405,headers:{Allow:'GET, HEAD, POST'}});
-    if (request.method === 'POST' && (request.headers.get('Origin') !== url.origin || !request.headers.get('Content-Type')?.startsWith('application/x-www-form-urlencoded'))) {
+    if (request.method === 'POST' && (request.headers.get('Origin') !== (env.SITE_ORIGIN || url.origin) || !request.headers.get('Content-Type')?.startsWith('application/x-www-form-urlencoded'))) {
       return errorPage('Submit this form from the Bloom360 website.','/',403);
     }
     if (request.method === 'POST' && Number(request.headers.get('Content-Length')) > 65536) return errorPage('This submission is too large.','/',413);
     try {
+      if (env.PUBLIC_DATA) return await visit(request,url,env.PUBLIC_DATA);
+      if (env.AUTH_MODE === 'standalone') {
+        const original = request;
+        const headers = new Headers(request.headers);
+        headers.delete('oai-authenticated-user-id');
+        headers.delete('oai-authenticated-user-email');
+        const user = await sessionIdentity(original,db);
+        if (user) {
+          headers.set('oai-authenticated-user-id',user.id);
+          headers.set('oai-authenticated-user-email',user.email);
+        }
+        request = new Request(original,{headers});
+        standaloneRequests.add(request);
+        if (['/login','/signup','/logout'].includes(path)) return await standaloneAccount(request,env,path);
+        if (path === '/account' && request.method === 'POST') return redirect('/account');
+        if (path === '/content.json' && request.method !== 'POST') {
+          return Response.json({
+            entries: (await entries(db)).filter((item) => item.published),
+            settings: await siteSettings(db),
+          }, {headers:{'Cache-Control':'no-store'}});
+        }
+      }
       if (path === '/admin' || path.startsWith('/admin/')) return await admin(request,url,db);
       if (path === '/account') {
         if (request.method === 'POST' && !actor(request).id) return errorPage('Sign in to create an account.','/account',401);
