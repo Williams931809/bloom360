@@ -5,8 +5,13 @@
   "buildCommand": "",
   "redirects": [
     {
-      "source": "/:path*",
-      "destination": "https://bloom360-initiative.lovableholdings.chatgpt.site/:path*",
+      "source": "/",
+      "destination": "https://bloom360-initiative.lovableholdings.chatgpt.site/",
+      "permanent": false
+    },
+    {
+      "source": "/:path+",
+      "destination": "https://bloom360-initiative.lovableholdings.chatgpt.site/:path+",
       "permanent": false
     }
   ]
