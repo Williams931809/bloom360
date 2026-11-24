@@ -5,7 +5,7 @@ const output = '.vercel/output';
 const fn = output + '/functions/bloom-render.func';
 await mkdir(fn,{ recursive: true });
 await mkdir(output + '/static/images',{ recursive: true });
-for (const image of ['bloom360-mentorship.webp', 'bloom360-logo.webp', 'bloom360-icon.png']) {
+for (const image of ['bloom360-mentorship.webp', 'bloom360-logo-transparent.webp', 'bloom360-icon-transparent.png']) {
   await copyFile('assets/' + image, output + '/static/images/' + image);
 }
 await copyFile('dist/server/index.js',fn + '/renderer.js');
