@@ -1,0 +1,36 @@
+:root{--r:16px;--ink:#281632;--lav:#f6eff9}
+nav{display:block;position:static;overflow:visible;max-height:none;border:0}
+nav ul{padding:0;flex-direction:row;flex-wrap:wrap}
+nav a{width:auto}
+nav a[aria-current=page]{background:var(--lav);color:var(--plum)}
+.bar{min-height:76px}
+main{min-height:55vh}
+.hero{background:linear-gradient(122deg,#fff 32%,#f6e8f8)}
+.hero h1{font-size:clamp(2.55rem,6vw,4.8rem);max-width:15ch;letter-spacing:-.055em}
+.hero-art{min-height:340px;border-radius:22px;background:#501e65;color:#fff;padding:2rem;display:grid;align-content:end;overflow:hidden;position:relative;isolation:isolate}
+.hero-art:before,.hero-art:after{content:"";position:absolute;border:1px solid #e5b7ed;border-radius:50%;width:310px;height:310px;top:-94px;right:-32px;z-index:-1}
+.hero-art:after{right:34px;top:-37px;background:#88337f40}
+.hero-art strong{font-size:clamp(1.7rem,3vw,2.5rem);line-height:1.1;max-width:11ch}
+.hero-art img,.founder-image{width:100%;height:100%;object-fit:cover;border-radius:22px}
+.hero-art:has(img){padding:0;align-content:stretch}
+.kicker{color:var(--plum);font-weight:700;margin-bottom:.6rem}
+.pagehead{background:var(--lav);padding:clamp(2.5rem,7vw,5rem) 0}
+.card{overflow-wrap:anywhere}
+.card p:last-child{margin-bottom:0}
+.flow{display:grid;gap:1rem;max-width:680px}
+.flow label{display:grid;gap:.35rem;font-weight:600}
+.flow input,.flow textarea,.flow select{width:100%;padding:.7rem .8rem;border:1px solid #807087;border-radius:9px;background:white;font:inherit;color:inherit}
+.flow textarea{min-height:110px;resize:vertical}
+.flow input[type=checkbox]{width:auto}
+.flow .check{display:flex;align-items:center;gap:.55rem}
+.flow .btn{justify-self:start}
+.notice{padding:.8rem 1rem;border:1px solid var(--line);background:var(--lav);border-radius:10px}
+.copy{white-space:pre-wrap;overflow-wrap:anywhere}
+.admin-links{display:flex;gap:.85rem;flex-wrap:wrap;margin:1rem 0 2rem}
+.admin-links a{background:var(--lav);padding:.4rem .75rem;border-radius:8px}
+.records{display:grid;gap:.8rem;margin-top:1rem}
+.record{display:flex;gap:1rem;justify-content:space-between;flex-wrap:wrap}
+.record p{margin:.4rem 0}
+footer{background:#281632;color:#fff}
+footer a{color:#f5d8ff}
+@media(max-width:850px){.bar{align-items:flex-start;flex-direction:column;gap:.4rem;padding-top:.7rem;padding-bottom:.7rem}nav a{padding:0 .45rem;min-height:38px}html{scroll-padding-top:1rem}header.site{position:static}.hero-art{min-height:250px}}
