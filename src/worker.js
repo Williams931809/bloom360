@@ -55,7 +55,7 @@ function page(title, content, path, status = 200) {
   <meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(title)} | Bloom360 Initiative</title>
   <meta name="description" content="${e(settings.introduction)}"><style>${theme.style}</style></head>
   <body>${theme.symbols}<a class="skip" href="#main">Skip to main content</a>
-  <header class="site"><div class="wrap bar">${theme.logo}<nav aria-label="Main"><ul>${menu}<li><a class="btn" href="/join">Join Bloom360</a></li></ul></nav></div></header>
+  <header class="site"><div class="wrap bar">${theme.logo}<nav class="desktop-nav" aria-label="Main"><ul>${menu}<li><a class="btn" href="/join">Join Bloom360</a></li></ul></nav><details class="mobile-menu"><summary><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg>Menu</summary><nav aria-label="Main"><ul>${menu}<li><a class="btn" href="/join">Join Bloom360</a></li></ul></nav></details></div></header>
   <main id="main">${content}</main>
   <footer><div class="wrap"><div class="cols"><div><h2>Bloom360 Initiative</h2><p>Mentorship, skills and opportunities for girls and women.</p></div>
   <div><h2>Explore</h2><ul><li><a href="/opportunities">Opportunity Guide</a></li><li><a href="/get-involved">Get involved</a></li><li><a href="/about#founder">Our founder</a></li></ul></div>
