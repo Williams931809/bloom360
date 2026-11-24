@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "outputDirectory": "public",
+  "buildCommand": "",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "destination": "https://bloom360-initiative.lovableholdings.chatgpt.site/:path*",
+      "permanent": false
+    }
+  ]
+}
