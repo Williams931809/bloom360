@@ -54,7 +54,7 @@ function page(title, content, path, status = 200) {
   return new Response(`<!doctype html><html lang="en"><head><meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1"><title>${e(title)} | Bloom360 Initiative</title>
   <meta name="description" content="${e(settings.introduction)}"><style>${theme.style}</style></head>
-  <body>${theme.symbols}<a class="skip" href="#main">Skip to main content</a>
+  <body class="${path === '/' ? 'home-page' : 'inner-page'}">${theme.symbols}<a class="skip" href="#main">Skip to main content</a>
   <header class="site"><div class="wrap bar">${theme.logo}<nav class="desktop-nav" aria-label="Main"><ul>${menu}<li><a class="btn" href="/join">Join Bloom360</a></li></ul></nav><details class="mobile-menu"><summary><svg class="ic" aria-hidden="true"><use href="#i-menu"/></svg>Menu</summary><nav aria-label="Main"><ul>${menu}<li><a class="btn" href="/join">Join Bloom360</a></li></ul></nav></details></div></header>
   <main id="main">${content}</main>
   <footer><div class="wrap"><div class="cols"><div><h2>Bloom360 Initiative</h2><p>Mentorship, skills and opportunities for girls and women.</p></div>
@@ -64,7 +64,7 @@ function page(title, content, path, status = 200) {
 }
 
 function cards(items) {
-  return `<div class="grid">${items.map(({ id,kind,title,summary,label,event_date }) => `<article class="card">${label || event_date ? `<span class="status">${e([label,event_date].filter(Boolean).join(' · '))}</span>` : ''}<h2><a href="/${kind}/${e(id)}">${e(title)}</a></h2><p>${e(summary)}</p></article>`).join('')}</div>`;
+  return `<div class="grid">${items.map(({ id,kind,title,summary,label,event_date }) => `<article class="card editorial-card">${label || event_date ? `<span class="status">${e([label,event_date].filter(Boolean).join(' · '))}</span>` : ''}<h2><a href="/${kind}/${e(id)}">${e(title)}</a></h2><p>${e(summary)}</p></article>`).join('')}</div>`;
 }
 async function entries(db) {
   if (db.entries) return db.entries;
@@ -256,12 +256,19 @@ async function visit(request, url, db) {
   const path = url.pathname;
   if (path === '/') {
     const config = await siteSettings(db);
-    const image = imageUrl(config.hero_image);
+    const managedImage = imageUrl(config.hero_image);
+    const image = managedImage || (db.settings ? '/images/bloom360-mentorship.webp' : '');
+    const listings = (await entries(db)).filter((item) => item.published);
+    const pathways = listings.filter((item) => ['programs','opportunities'].includes(item.kind)).slice(0,3);
+    const resources = listings.filter((item) => item.kind === 'resources').slice(0,2);
     return page('Mentorship, skills and opportunities',
-      `<div class="hero"><div class="wrap"><div><p class="kicker">Bloom360 Initiative</p><h1>${e(config.headline)}</h1><p class="lead">${e(config.introduction)}</p>
+      `<section class="hero"><div class="wrap"><div class="hero-copy"><p class="kicker">Bloom360 Initiative</p><h1>${e(config.headline)}</h1><p class="lead">${e(config.introduction)}</p>
       <div class="actions">${button('/join','Join Bloom360',true)}${button('/programs','Explore programs')}</div></div>
-      <div class="hero-art">${image ? `<img src="${e(image)}" alt="Bloom360 community" fetchpriority="high">` : '<strong>Mentorship. Skills. Opportunities.</strong>'}</div></div></div>`
-      + block('<h2>Find your next step</h2>' + cards((await entries(db)).filter((item) => item.published && ['programs','opportunities'].includes(item.kind)).slice(0,4)),'alt'),path);
+      <div class="hero-art">${image ? `<img src="${e(image)}" alt="${managedImage ? 'Bloom360 community' : 'Two women working together on a laptop'}" fetchpriority="high">` : '<strong>Mentorship. Skills. Opportunities.</strong>'}</div></div></section>`
+      + block(`<div class="section-intro"><div><p class="kicker">Programs and opportunities</p><h2>Find your next step</h2></div>${button('/programs','View programs')}</div>` + (pathways.length ? cards(pathways) : notice('New programs will be shared here.')),'pathways')
+      + block(`<div class="mission-band"><div><p class="kicker">Our mission</p><h2>More women with the confidence and support to choose what comes next.</h2></div><div><p>Bloom360 brings together mentorship, practical learning and opportunities for girls and women at every stage of their career journey.</p>${button('/about','Meet Bloom360')}</div></div>`,'mission')
+      + (resources.length ? block(`<div class="section-intro"><div><p class="kicker">Resource hub</p><h2>Practical guides for what’s next</h2></div>${button('/resources','Browse resources')}</div>` + cards(resources),'home-resources') : '')
+      + block(`<div class="join-band"><div><h2>Help someone take her next step.</h2><p>Share your experience, volunteer at an event or partner with Bloom360.</p></div>${button('/get-involved','Get involved',true)}</div>`,'home-join'),path);
   }
   if (path === '/about') {
     const config = await siteSettings(db);

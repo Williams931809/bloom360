@@ -9,3 +9,5 @@ Vercel renders the public website on `thebloom360initiative.com`. It sends accou
 - Use `/admin` to manage content, review submissions, export subscribers and update site settings. A published program or event with the label `Open` accepts submissions. Newsletter signup stores addresses for export.
 
 The original ChatGPT Sites build is available through `npm run build` and uses the separate Sites database and identity integration.
+
+Homepage photography by [Christina Morillo on Pexels](https://www.pexels.com/photo/woman-using-macbook-pro-1181474/).
