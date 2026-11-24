@@ -57,7 +57,8 @@ export default async function frontend(request) {
       return await fetch(target, { method: request.method, headers, body, redirect: 'manual' });
     }
     if (request.method === 'POST') return new Response('Page could not be found.', { status: 404 });
-    const response = await fetch(backend + '/content.json', { cache: 'no-store', redirect: 'error' });
+    stage = 'content-fetch';
+    const response = await fetch(backend + '/content.json');
     if (!response.ok) return unavailable('backend-' + response.status);
     stage = 'content-json';
     const data = await response.json();
