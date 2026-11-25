@@ -11,3 +11,7 @@ Vercel renders the public website on `thebloom360initiative.com`. It sends accou
 The original ChatGPT Sites build is available through `npm run build` and uses the separate Sites database and identity integration.
 
 Homepage photography by [Christina Morillo on Pexels](https://www.pexels.com/photo/woman-using-macbook-pro-1181474/).
+
+## Kontroldesk deployment
+
+The `kontroldesk-deployment` branch builds a separate Cloudflare Worker using `node scripts/build-kontroldesk.mjs`. It serves the original page templates, assets, and application routes and uses an independent D1 database. Set an encrypted `ADMIN_SETUP_CODE` on that Worker before registering its first administrator.
