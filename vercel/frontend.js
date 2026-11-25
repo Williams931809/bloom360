@@ -68,6 +68,13 @@ export default async function frontend(request) {
       return request.method === 'HEAD' ? response : await withBrand(response);
     }
     if (request.method === 'POST') return new Response('Page could not be found.', { status: 404 });
+    if (path === '/published-content.json') {
+      const published = await fetch(backend + '/content.json');
+      return new Response(request.method === 'HEAD' ? null : published.body, {
+        status: published.status,
+        headers: { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' },
+      });
+    }
     stage = 'content-fetch';
     const response = await fetch(backend + '/content.json');
     if (!response.ok) return unavailable('backend-' + response.status);
