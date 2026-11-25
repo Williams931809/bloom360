@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile, copyFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, copyFile, readdir } from 'node:fs/promises';
 
 const original = await readFile('src/original.html', 'utf8');
 const fragment = (pattern) => {
@@ -16,7 +16,17 @@ const logo = fragment(/(<a class="logo"[\s\S]+?<\/a>)/).replace('#top', '/');
 const code = await readFile('src/worker.js', 'utf8');
 const css = await readFile('src/site.css', 'utf8');
 
+async function loadReferencePages(directory, route = '/', pages = {}) {
+  for (const entry of await readdir(directory, {withFileTypes:true})) {
+    if (entry.isDirectory()) await loadReferencePages(directory + '/' + entry.name, route + entry.name + '/', pages);
+    if (entry.name === 'index.html') pages[route === '/' ? route : route.slice(0,-1)] = await readFile(directory + '/index.html','utf8');
+  }
+  return pages;
+}
+const referencePages = await loadReferencePages('reference-site');
+const pageEditor = await readFile('src/page-editor.js','utf8');
+
 await mkdir('dist/server', { recursive: true });
 await mkdir('dist/.openai', { recursive: true });
-await writeFile('dist/server/index.js', `const theme = ${JSON.stringify({ style: style + css, about, symbols, logo })};\n${code}`);
+await writeFile('dist/server/index.js', `const theme = ${JSON.stringify({ style: style + css, about, symbols, logo })};\nconst referencePages = ${JSON.stringify(referencePages)};\n${code}\n${pageEditor}`);
 await copyFile('.openai/hosting.json', 'dist/.openai/hosting.json');

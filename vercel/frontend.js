@@ -65,6 +65,13 @@ export default async function frontend(request) {
       target.pathname = path;
       target.search = url.search;
       const response = await fetch(target, { method: request.method, headers, body, redirect: 'manual' });
+      if (request.method === 'GET' && response.ok && response.headers.get('X-Bloom360-Page-Preview') === '1') {
+        const preview = await response.json();
+        const previewUrl = new URL(preview.path, site);
+        return renderer.fetch({url:previewUrl.href,method:'GET',headers:new Headers()}, {
+          PUBLIC_DATA:{pages:{[preview.path]:preview.changes},draft:true},
+        });
+      }
       return request.method === 'HEAD' ? response : await withBrand(response);
     }
     if (request.method === 'POST') return new Response('Page could not be found.', { status: 404 });

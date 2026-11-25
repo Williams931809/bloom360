@@ -127,7 +127,7 @@ async function receive(db, form) {
 }
 
 function adminNav() {
-  return `<div class="admin-links"><a href="/admin">Overview</a>${Object.entries(sections).map(([key,[title]]) => `<a href="/admin/entries?kind=${key}">${title}</a>`).join('')}<a href="/admin/inbox">Inbox</a><a href="/admin/members">Members</a><a href="/admin/settings">Site settings</a></div>`;
+  return `<div class="admin-links"><a href="/admin">Overview</a><a href="/admin/pages">Website pages</a>${Object.entries(sections).map(([key,[title]]) => `<a href="/admin/entries?kind=${key}">${title}</a>`).join('')}<a href="/admin/inbox">Inbox</a><a href="/admin/members">Members</a><a href="/admin/settings">Site settings</a></div>`;
 }
 function adminPage(title, body, path) {
   return page(title,head(title) + block(adminNav() + body),path);
@@ -164,6 +164,7 @@ async function admin(request, url, db) {
   if (!account) return redirect('/account');
   if (account.role !== 'admin') return errorPage('Administrator access is required.','/account',403);
 
+  if (path === '/admin/pages') return managePages(request,url,db);
   if (request.method === 'POST') {
     const form = await request.formData();
     if (path === '/admin/entries') return saveEntry(db,form);
@@ -320,7 +321,7 @@ export default {
     }
     if (request.method === 'POST' && Number(request.headers.get('Content-Length')) > 65536) return errorPage('This submission is too large.','/',413);
     try {
-      if (env.PUBLIC_DATA) return await visit(request,url,env.PUBLIC_DATA);
+      if (env.PUBLIC_DATA) return referencePage(path,env.PUBLIC_DATA.pages?.[path],request.method,env.PUBLIC_DATA.draft) || await visit(request,url,env.PUBLIC_DATA);
       if (env.AUTH_MODE === 'standalone') {
         const original = request;
         const headers = new Headers(request.headers);
@@ -339,6 +340,7 @@ export default {
           return Response.json({
             entries: (await entries(db)).filter((item) => item.published),
             settings: await siteSettings(db),
+            pages: await publishedPages(db),
           }, {headers:{'Cache-Control':'no-store'}});
         }
       }
