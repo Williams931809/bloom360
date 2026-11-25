@@ -14,10 +14,16 @@ export default {
   async fetch(request, env, context) {
     const response = await app.fetch(request, env, context);
     if (!response.body || !response.headers.get('content-type')?.startsWith('text/html')) return response;
+    const headers = new Headers(response.headers);
+    const csp = headers.get('Content-Security-Policy');
+    if (new URL(request.url).hostname === 'bloom360.kontroldesk.online' && csp) {
+      headers.set('Content-Security-Policy', csp.replace(/frame-ancestors[^;]*/, "frame-ancestors 'self' https://kontroldesk.online"));
+    }
+    const framedResponse = new Response(response.body, { status: response.status, headers });
     return new HTMLRewriter()
       .on('a.logo', { element: element => element.setInnerContent('<img src="/images/bloom360-logo-transparent.webp" alt="Bloom360 Initiative" width="530" height="408">', { html: true }) })
       .on('head', { element: element => element.append('<link rel="icon" type="image/png" href="/images/bloom360-icon-transparent.png"><style>.bar .logo img{display:block;width:auto;height:65px;border-radius:7px}@media(max-width:900px){.bar .logo img{height:53px}}</style>', { html: true }) })
-      .transform(response);
+      .transform(framedResponse);
   },
 };
 `);
