@@ -59,7 +59,7 @@ function page(title, content, path, status = 200) {
   <main id="main">${content}</main>
   <footer><div class="wrap"><div class="cols"><div><h2>Bloom360 Initiative</h2><p>Mentorship, skills and opportunities for girls and women.</p></div>
   <div><h2>Explore</h2><ul><li><a href="/opportunities">Opportunity Guide</a></li><li><a href="/get-involved">Get involved</a></li><li><a href="/about#founder">Our founder</a></li></ul></div>
-  <div><h2>Connect</h2><ul><li><a href="https://www.instagram.com/bloom360initiative/">Instagram</a></li><li><a href="/privacy">Privacy</a></li><li><a href="/account">My account</a></li><li><a href="/admin">Admin panel</a></li></ul></div></div></div></footer></body></html>`,
+  <div><h2>Connect</h2><ul><li><a href="https://www.instagram.com/bloom360initiative/">Instagram</a></li><li><a href="/privacy">Privacy</a></li><li><a href="/account">My account</a></li></ul></div></div></div></footer></body></html>`,
   { status, headers: {'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; img-src 'self' https:; form-action 'self'; frame-ancestors 'self' https://chatgpt.com; base-uri 'none'"} });
 }
 

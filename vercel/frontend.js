@@ -12,6 +12,7 @@ const unavailable = (reason = 'runtime') => new Response('Bloom360 is temporaril
 async function withBrand(response) {
   if (!response.headers.get('content-type')?.startsWith('text/html') || !response.body) return response;
   const html = (await response.text())
+    .replace('<li><a href="/admin">Admin panel</a></li>', '')
     .replace(/<a class="logo"[^>]*>[\s\S]*?<\/a>/, '<a class="logo" href="/" aria-label="Bloom360 Initiative home"><img src="/images/bloom360-logo-transparent.webp" alt="Bloom360 Initiative" width="530" height="408"></a>')
     .replace('</head>', '<link rel="icon" type="image/png" sizes="64x64" href="/images/bloom360-icon-transparent.png"><style>.bar .logo img{display:block;width:auto;height:65px;border-radius:7px}@media(max-width:900px){.bar .logo img{height:53px}}</style></head>');
   const headers = new Headers(response.headers);
