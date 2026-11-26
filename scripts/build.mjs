@@ -25,8 +25,9 @@ async function loadReferencePages(directory, route = '/', pages = {}) {
 }
 const referencePages = await loadReferencePages('reference-site');
 const pageEditor = await readFile('src/page-editor.js','utf8');
+const studio = await readFile('src/design-studio.js','utf8');
 
 await mkdir('dist/server', { recursive: true });
 await mkdir('dist/.openai', { recursive: true });
-await writeFile('dist/server/index.js', `const theme = ${JSON.stringify({ style: style + css, about, symbols, logo })};\nconst referencePages = ${JSON.stringify(referencePages)};\n${code}\n${pageEditor}`);
+await writeFile('dist/server/index.js', `const theme = ${JSON.stringify({ style: style + css, about, symbols, logo })};\nconst referencePages = ${JSON.stringify(referencePages)};\n${code}\n${pageEditor}\n${studio}`);
 await copyFile('.openai/hosting.json', 'dist/.openai/hosting.json');

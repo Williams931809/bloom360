@@ -23,3 +23,9 @@
 @media(max-width:360px){.navline{gap:6px}.nav-controls{gap:5px}.theme-switch,.menu{padding-inline:7px}.header .brand img{width:72px}}
 
 form .consent{display:flex;align-items:flex-start;gap:.55rem;font-weight:400;font-size:.9rem;line-height:1.4} form .consent input{width:auto;min-height:0;margin:.16rem 0 0;flex:none} .signup .consent{grid-column:1/-1}
+
+.studio-block{display:grid;gap:1rem}
+.studio-block h2,.studio-block p{margin-bottom:0}
+.studio-copy{white-space:pre-wrap}
+.studio-photo,.studio-video{display:block;width:min(100%,920px);height:auto;border:0;border-radius:12px}
+.studio-video{aspect-ratio:16/9;background:#16121a}

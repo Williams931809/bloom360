@@ -60,7 +60,7 @@ function page(title, content, path, status = 200) {
   <footer><div class="wrap"><div class="cols"><div><h2>Bloom360 Initiative</h2><p>Mentorship, skills and opportunities for girls and women.</p></div>
   <div><h2>Explore</h2><ul><li><a href="/opportunities">Opportunity Guide</a></li><li><a href="/get-involved">Get involved</a></li><li><a href="/about#founder">Our founder</a></li></ul></div>
   <div><h2>Connect</h2><ul><li><a href="https://www.instagram.com/bloom360initiative/">Instagram</a></li><li><a href="/privacy">Privacy</a></li><li><a href="/account">My account</a></li></ul></div></div></div></footer></body></html>`,
-  { status, headers: {'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','Content-Security-Policy':"default-src 'none'; style-src 'unsafe-inline'; img-src 'self' https:; form-action 'self'; frame-ancestors 'self' https://chatgpt.com; base-uri 'none'"} });
+  { status, headers: {'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','Content-Security-Policy':"default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; img-src 'self' https:; form-action 'self'; frame-ancestors 'self' https://chatgpt.com; base-uri 'none'"} });
 }
 
 function cards(items) {
@@ -127,7 +127,7 @@ async function receive(db, form) {
 }
 
 function adminNav() {
-  return `<div class="admin-links"><a href="/admin">Overview</a><a href="/admin/pages">Website pages</a>${Object.entries(sections).map(([key,[title]]) => `<a href="/admin/entries?kind=${key}">${title}</a>`).join('')}<a href="/admin/inbox">Inbox</a><a href="/admin/members">Members</a><a href="/admin/settings">Site settings</a></div>`;
+  return `<div class="admin-links"><a href="/admin">Overview</a><a href="/admin/pages">Website pages</a><a href="/admin/assistant">AI assistant</a>${Object.entries(sections).map(([key,[title]]) => `<a href="/admin/entries?kind=${key}">${title}</a>`).join('')}<a href="/admin/inbox">Inbox</a><a href="/admin/members">Members</a><a href="/admin/settings">Site settings</a></div>`;
 }
 function adminPage(title, body, path) {
   return page(title,head(title) + block(adminNav() + body),path);
@@ -156,7 +156,7 @@ async function saveEntry(db, form) {
   id || crypto.randomUUID(),kind,title,summary,text(form,'body',12000),text(form,'label',80),date,Number(form.has('published')));
   return redirect('/admin/entries?kind=' + kind);
 }
-async function admin(request, url, db) {
+async function admin(request, url, db, ai) {
   const path = url.pathname;
   const user = actor(request);
   if (!user.id) return redirect(standaloneRequests.has(request) ? '/login' : signIn('/admin'));
@@ -165,6 +165,7 @@ async function admin(request, url, db) {
   if (account.role !== 'admin') return errorPage('Administrator access is required.','/account',403);
 
   if (path === '/admin/pages') return managePages(request,url,db);
+  if (path === '/admin/assistant') return siteAssistant(request,url,db,ai);
   if (request.method === 'POST') {
     const form = await request.formData();
     if (path === '/admin/entries') return saveEntry(db,form);
@@ -344,7 +345,7 @@ export default {
           }, {headers:{'Cache-Control':'no-store'}});
         }
       }
-      if (path === '/admin' || path.startsWith('/admin/')) return await admin(request,url,db);
+      if (path === '/admin' || path.startsWith('/admin/')) return await admin(request,url,db,env.AI);
       if (path === '/account') {
         if (request.method === 'POST' && !actor(request).id) return errorPage('Sign in to create an account.','/account',401);
         return await account(request,db,env.ADMIN_SETUP_CODE);

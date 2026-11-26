@@ -36,12 +36,12 @@ function applyPageEdits(html, changes) {
 function referencePage(path, data, method, draft = false) {
   const template = referencePages[path];
   if (!template) return null;
-  const html = applyPageEdits(template, data || {});
+  const html = applyDesign(applyPageEdits(template, data || {}), data || {});
   const rendered = draft ? html.replace('<main id="main">', '<main id="main"><div class="wrap"><p class="callout">Draft preview. <a href="/admin/pages">Back to page manager</a></p></div>') : html;
   return new Response(method === 'HEAD' ? null : rendered, {headers:{
     'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff',
     'Referrer-Policy':'same-origin',
-    'Content-Security-Policy':"default-src 'none'; script-src 'self' 'sha256-/empALHSHnBSWlZiY1ELSXVX7rVovD+Tu3xak2bpEEM='; style-src 'self'; img-src 'self' https:; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'self'",
+    'Content-Security-Policy':"default-src 'none'; script-src 'self' 'sha256-/empALHSHnBSWlZiY1ELSXVX7rVovD+Tu3xak2bpEEM='; style-src 'self' 'unsafe-inline'; img-src 'self' https:; media-src https:; frame-src https://www.youtube-nocookie.com https://player.vimeo.com; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'self'",
     ...(draft ? {'X-Robots-Tag':'noindex'} : {}),
   }});
 }
@@ -76,6 +76,11 @@ async function managePages(request, url, db) {
       if (!content) return errorPage('Complete all page fields before saving.',back);
       if (content !== item.value) changes[item.key] = content;
     }
+    for (const key of Object.keys(designOptions)) {
+      const value = cleanDesign(key,text(form,key,1000));
+      if (value === null) return errorPage('Use a valid color, layout or media URL.',back);
+      if (value) changes[key] = value;
+    }
     const version = JSON.stringify(changes);
     const upsert = 'INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value';
     const updates = [db.prepare(upsert).bind('page-draft:' + path,version)];
@@ -107,8 +112,8 @@ async function managePages(request, url, db) {
   const actions = '<div class="actions"><button class="btn ghost" name="action" value="draft">Save draft</button><button class="btn primary" name="action" value="publish">Publish page</button></div>';
   const restore = (draft || live) ? `<details class="card"><summary>Restore original content</summary><p>This removes the saved draft and any published edits for this page.</p>${start(adminPath)}${hidden}<button class="btn ghost" name="action" value="restore">Restore original</button></form></details>` : '';
   return adminPage('Edit ' + fields[0].value.replace(/ \| Bloom360 Initiative$/,''),(saved ? notice(saved) : '') +
-    '<div class="actions">' + button(selected,'View live page') + button(editorUrl + '&preview=1','Preview saved draft') + '</div><br>' +
-    start(adminPath) + hidden + fields.map((item) => area(item.key,item.label,changes[item.key] ?? item.value,true,item.max)).join('') + actions + '</form><br>' + restore,adminPath);
+    '<div class="actions">' + button(selected,'View live page') + button('/admin/assistant?page=' + encodeURIComponent(selected),'Ask AI') + button(editorUrl + '&preview=1','Preview saved draft') + '</div><br>' +
+    start(adminPath) + hidden + designFields(changes) + fields.map((item) => area(item.key,item.label,changes[item.key] ?? item.value,true,item.max)).join('') + actions + '</form><br>' + restore,adminPath);
 }
 
 export function referencePageSchema() {
