@@ -130,7 +130,7 @@ function adminNav() {
   return `<div class="admin-links"><a href="/admin">Overview</a><a href="/admin/pages">Website pages</a><a href="/admin/assistant">AI assistant</a>${Object.entries(sections).map(([key,[title]]) => `<a href="/admin/entries?kind=${key}">${title}</a>`).join('')}<a href="/admin/inbox">Inbox</a><a href="/admin/members">Members</a><a href="/admin/settings">Site settings</a></div>`;
 }
 function adminPage(title, body, path) {
-  return page(title,head(title) + block(adminNav() + body),path);
+  return page(title,head(title) + block(adminNav() + body) + (path === '/admin/assistant' ? '' : '<a class="btn primary assistant-launch" href="/admin/assistant">Ask Bloom360 Assistant</a>'),path);
 }
 function entryForm(kind, entry) {
   const item = entry ?? {};
